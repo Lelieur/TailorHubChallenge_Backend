@@ -78,9 +78,9 @@ const loginUser = (req: Request, res: Response, next: NextFunction) => {
         return;
       }
 
-      const { _id: userId, username, email, favoriteRestaurants } = user;
+      const { _id: id, username, email, favoriteRestaurants } = user;
 
-      const payload = { userId, username, email };
+      const payload = { id, username, email };
 
       const authToken = jwt.sign(
         payload,
@@ -90,7 +90,7 @@ const loginUser = (req: Request, res: Response, next: NextFunction) => {
 
       res.status(200).json({
         authToken: authToken,
-        userData: { userId, username, email, favoriteRestaurants },
+        userData: { id, username, email, favoriteRestaurants },
       });
     })
     .catch((error) => next(error));
