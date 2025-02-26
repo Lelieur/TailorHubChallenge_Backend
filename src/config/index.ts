@@ -2,7 +2,8 @@ import express, { Application } from "express";
 import logger from "morgan";
 import cors from "cors";
 
-const FRONTEND_URL = process.env.ORIGIN || "http://localhost:3000";
+const FRONTEND_URL =
+  process.env.ORIGIN || "https://tailor-challenge-frontend.vercel.app/signup";
 
 export default (app: Application): void => {
   app.set("trust proxy", 1);
