@@ -35,6 +35,12 @@ const userSchema = new Schema(
         ref: "Restaurant",
       },
     ],
+    reviews: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Review",
+      },
+    ],
   },
   { timestamps: true }
 );

@@ -1,3 +1,4 @@
+import { lstat } from "fs";
 import { Schema, model } from "mongoose";
 
 const restaurantSchema = new Schema(
@@ -17,13 +18,13 @@ const restaurantSchema = new Schema(
       required: [true, "Add an address to the restaurant"],
       minlength: [3, "The address must be at least 3 characters long"],
     },
-    photograph: {
-      type: String,
-      required: [true, "Add a photograph to the restaurant"],
-    },
     latlng: {
-      type: Object,
-      required: [true, "Add a latitude and longitude to the restaurant"],
+      lat: {
+        type: Number,
+      },
+      lng: {
+        type: Number,
+      },
     },
     image: {
       type: String,
