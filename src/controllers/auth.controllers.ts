@@ -80,7 +80,7 @@ const loginUser = (req: Request, res: Response, next: NextFunction) => {
 
       const { _id: id, username, email, favoriteRestaurants } = user;
 
-      const payload = { id, username, email };
+      const payload = { id, username, email, favoriteRestaurants };
 
       const authToken = jwt.sign(
         payload,

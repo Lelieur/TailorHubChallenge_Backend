@@ -19,11 +19,15 @@ const restaurantSchema = new Schema(
       minlength: [3, "The address must be at least 3 characters long"],
     },
     latlng: {
-      lat: {
-        type: Number,
-      },
-      lng: {
-        type: Number,
+      type: {
+        lat: {
+          type: Number,
+          required: [true, "Add a latitude to the restaurant"],
+        },
+        lng: {
+          type: Number,
+          required: [true, "Add a longitude to the restaurant"],
+        },
       },
     },
     image: {

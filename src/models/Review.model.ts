@@ -30,6 +30,6 @@ const reviewSchema = new Schema(
   { timestamps: true }
 );
 
-const User = model("Review", reviewSchema);
+const Review = model("Review", reviewSchema);
 
-export default User;
+export default Review;
