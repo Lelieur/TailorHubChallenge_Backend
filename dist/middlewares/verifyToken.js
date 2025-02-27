@@ -11,14 +11,14 @@ const verifyToken = (req, res, next) => {
             res.status(401).json({ message: "No token provided" });
             return;
         }
-        const tokenParts = token.split(' ');
+        const tokenParts = token.split(" ");
         const bearerToken = tokenParts[1];
         if (!bearerToken) {
             res.status(401).json({ message: "Invalid token format" });
             return;
         }
         if (!process.env.TOKEN_SECRET) {
-            throw new Error('TOKEN_SECRET not found');
+            throw new Error("TOKEN_SECRET not found");
         }
         const validTokenPayload = jsonwebtoken_1.default.verify(bearerToken, process.env.TOKEN_SECRET);
         req.payload = validTokenPayload;
