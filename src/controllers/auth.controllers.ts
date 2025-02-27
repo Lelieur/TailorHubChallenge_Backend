@@ -13,19 +13,12 @@ const signupUser = (req: Request, res: Response, next: NextFunction) => {
   }
 
   const passwordRegex =
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[A-Za-z0-9!@#$%^&*]*$/;
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*]).{8,}$/;
   if (!passwordRegex.test(password)) {
     res.status(400).json({
       message:
-        "Password must contain at least one number and one special character",
+        "Password must contain at least one number and one special character and be at least 8 characters long",
     });
-    return;
-  }
-
-  if (password.length < 8) {
-    res
-      .status(400)
-      .json({ message: "Password must be at least 8 characters long" });
     return;
   }
 

@@ -24,10 +24,16 @@ const userSchema = new Schema(
       type: String,
       required: [true, "Add your password"],
       minlength: [8, "The password must be at least 8 characters long"],
-      match: [
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*]).{8,}$/,
-        "La contraseña debe contener al menos un número, una letra mayúscula, una letra minúscula y un carácter especial, y tener al menos 8 caracteres de longitud",
-      ],
+      validate: {
+        validator: function (value: string): boolean {
+          if (value.startsWith("$2b$")) return true;
+          return /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*]).{8,}$/.test(
+            value
+          );
+        },
+        message:
+          "La contraseña debe contener al menos un número, una letra mayúscula, una letra minúscula y un carácter especial, y tener al menos 8 caracteres de longitud",
+      },
     },
     favoriteRestaurants: [
       {
