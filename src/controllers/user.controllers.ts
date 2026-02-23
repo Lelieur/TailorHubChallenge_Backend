@@ -1,50 +1,52 @@
-import User from "../models/User.model";
-import { Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction } from 'express';
+import { prisma } from '../db';
 
 const getUserById = (req: Request, res: Response, next: NextFunction) => {
-  const { id } = req.params;
+  const id = String(req.params.id);
 
-  User.findById(id)
-    .populate("reviews")
-    .populate("favoriteRestaurants")
+  prisma.user
+    .findUnique({
+      where: { id },
+      include: {
+        reviews: true,
+        favoriteRestaurants: true,
+      },
+    })
     .then((user) => res.status(200).json(user))
     .catch((error) => next(error));
 };
 
-const addFavoriteRestaurant = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const { id: restaurantId } = req.params;
-  const { id: userId } = req.body;
+const addFavoriteRestaurant = (req: Request, res: Response, next: NextFunction) => {
+  const restaurantId = String(req.params.id);
+  const userId = String(req.body.id);
 
-  User.findByIdAndUpdate(
-    userId,
-    { $push: { favoriteRestaurants: restaurantId } },
-    { new: true, runValidators: true }
-  )
-    .then((restaurant) => res.status(200).json(restaurant))
+  prisma.user
+    .update({
+      where: { id: userId },
+      data: {
+        favoriteRestaurants: {
+          connect: { id: restaurantId },
+        },
+      },
+    })
+    .then((user) => res.status(200).json(user))
     .catch((error) => next(error));
 };
 
-const removeFavoriteRestaurant = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const { id: restaurantId } = req.params;
-  const { id: userId } = req.body;
+const removeFavoriteRestaurant = (req: Request, res: Response, next: NextFunction) => {
+  const restaurantId = String(req.params.id);
+  const userId = String(req.body.id);
 
-  console.log("userId desde el cuerpo:", userId);
-  console.log("restaurantId desde los parámetros:", restaurantId);
-
-  User.findByIdAndUpdate(
-    userId,
-    { $pull: { favoriteRestaurants: restaurantId } },
-    { new: true, runValidators: true }
-  )
-    .then((restaurant) => res.status(200).json(restaurant))
+  prisma.user
+    .update({
+      where: { id: userId },
+      data: {
+        favoriteRestaurants: {
+          disconnect: { id: restaurantId },
+        },
+      },
+    })
+    .then((user) => res.status(200).json(user))
     .catch((error) => next(error));
 };
 

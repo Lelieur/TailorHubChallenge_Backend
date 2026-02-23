@@ -1,73 +1,29 @@
-import { Request, Response, NextFunction } from 'express';
-import mongoose from 'mongoose';
-import Review from '../models/Review.model';
-import User from '../models/User.model';
-import Restaurant from '../models/Restaurant.model';
+import { Request, Response, NextFunction } from "express";
+import { prisma } from "../db";
+
 const createReview = (req: Request, res: Response, next: NextFunction) => {
   const { name, date, rating, comments, authorId, restaurantId } = req.body;
 
-  Review.create({
-    name,
-    date,
-    rating,
-    comments,
-    authorId,
-    restaurantId,
-  })
-    .then((review) => {
-      res.status(201).json(review);
-      return review;
+  prisma.review
+    .create({
+      data: {
+        name,
+        date,
+        rating,
+        comments,
+        authorId,
+        restaurantId,
+      },
     })
-    .then((review) => {
-      return Promise.all([
-        User.findByIdAndUpdate(
-          authorId,
-          {
-            $push: { reviews: review._id },
-          },
-          { new: true, runValidators: true },
-        ),
-        Restaurant.findByIdAndUpdate(
-          restaurantId,
-          { $push: { reviews: review } },
-          { new: true, runValidators: true },
-        ),
-      ]);
-    })
-    .then(() => {
-      // Aquí puedes manejar la respuesta si es necesario
-    })
+    .then((review) => res.status(201).json(review))
     .catch((error) => next(error));
 };
 
 const deleteReview = (req: Request, res: Response, next: NextFunction) => {
-  const { id } = req.params;
+  const id = String(req.params.id);
 
-  if (!mongoose.isValidObjectId(id)) {
-    res.status(400).json({ message: 'Invalid review ID' });
-    return;
-  }
-
-  Review.findByIdAndDelete(id)
-    .then((review) => {
-      if (!review) {
-        res.status(404).json({ message: 'Review not found' });
-        return null;
-      }
-      const { authorId, restaurantId } = review;
-      return Promise.all([
-        User.findByIdAndUpdate(
-          authorId,
-          { $pull: { reviews: review._id } },
-          { new: true, runValidators: true },
-        ),
-        Restaurant.findByIdAndUpdate(
-          restaurantId,
-          { $pull: { reviews: { _id: review._id } } },
-          { new: true, runValidators: true },
-        ),
-      ]);
-    })
+  prisma.review
+    .delete({ where: { id } })
     .then(() => {
       res.status(204).send();
     })
@@ -75,35 +31,25 @@ const deleteReview = (req: Request, res: Response, next: NextFunction) => {
 };
 
 const updateReview = (req: Request, res: Response, next: NextFunction) => {
-  const { id } = req.params;
+  const id = String(req.params.id);
   const { name, date, rating, comments, restaurantId } = req.body;
 
-  Review.findByIdAndUpdate(id, { name, date, rating, comments }, { new: true, runValidators: true })
-    .then((updatedReview) => {
-      if (!updatedReview) {
-        res.status(404).json({ message: 'Review not found' });
-        return;
-      }
-      return Restaurant.findByIdAndUpdate(
-        restaurantId,
-        { $set: { 'reviews.$[elem]': updatedReview } },
-        {
-          arrayFilters: [{ 'elem._id': updatedReview._id }],
-          new: true,
-          runValidators: true,
-        },
-      );
+  prisma.review
+    .update({
+      where: { id },
+      data: { name, date, rating, comments, restaurantId },
     })
     .then(() => {
-      res.status(200).json({ message: 'Review updated successfully' });
+      res.status(200).json({ message: "Review updated successfully" });
     })
     .catch((error) => next(error));
 };
 
 const getReviewById = (req: Request, res: Response, next: NextFunction) => {
-  const { id } = req.params;
+  const id = String(req.params.id);
 
-  Review.findById(id)
+  prisma.review
+    .findUnique({ where: { id } })
     .then((review) => res.status(200).json(review))
     .catch((error) => next(error));
 };

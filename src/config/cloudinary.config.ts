@@ -1,7 +1,5 @@
-import * as cloudinary from "cloudinary";
-
-// Cargar variables de entorno
-require("dotenv").config();
+import * as cloudinary from 'cloudinary';
+import 'dotenv/config';
 
 // Configurar Cloudinary
 cloudinary.v2.config({

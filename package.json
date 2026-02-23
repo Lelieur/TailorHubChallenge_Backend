@@ -16,14 +16,18 @@
   },
   "author": "Lucas Lelieur",
   "dependencies": {
+    "@prisma/adapter-pg": "^7.4.1",
+    "@prisma/client": "^7.4.1",
+    "@prisma/extension-accelerate": "^3.0.1",
     "bcrypt": "^6.0.0",
     "cloudinary": "^2.9.0",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
-    "mongoose": "^8.23.0",
-    "morgan": "^1.10.1"
+    "morgan": "^1.10.1",
+    "pg": "^8.18.0",
+    "prisma": "^7.4.1"
   },
   "devDependencies": {
     "@cloudinary-util/types": "^1.6.0",
@@ -34,6 +38,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/morgan": "^1.9.10",
     "@types/node": "^24.2.1",
+    "@types/pg": "^8.16.0",
     "@types/supertest": "6.0.3",
     "eslint": "9.39.2",
     "prettier": "3.8.1",

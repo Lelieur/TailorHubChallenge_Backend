@@ -1,14 +1,17 @@
 import { Request, Response, NextFunction } from 'express';
-import mongoose from 'mongoose';
-import Restaurant from '../models/Restaurant.model';
+import { prisma } from '../db';
 
 const getAllRestaurants = (req: Request, res: Response, next: NextFunction) => {
-  Restaurant.find()
-    .populate({
-      path: 'reviews',
-      populate: {
-        path: 'restaurantId',
-        select: 'name',
+  prisma.restaurant
+    .findMany({
+      include: {
+        reviews: {
+          include: {
+            restaurant: {
+              select: { name: true },
+            },
+          },
+        },
       },
     })
     .then((restaurants) => res.status(200).json(restaurants))
@@ -16,19 +19,19 @@ const getAllRestaurants = (req: Request, res: Response, next: NextFunction) => {
 };
 
 const getRestaurantById = (req: Request, res: Response, next: NextFunction) => {
-  const { id } = req.params;
+  const id = String(req.params.id);
 
-  if (!mongoose.isValidObjectId(id)) {
-    res.status(400).json({ message: 'Invalid restaurant ID' });
-    return;
-  }
-
-  Restaurant.findById(id)
-    .populate({
-      path: 'reviews',
-      populate: {
-        path: 'restaurantId',
-        select: 'name',
+  prisma.restaurant
+    .findUnique({
+      where: { id },
+      include: {
+        reviews: {
+          include: {
+            restaurant: {
+              select: { name: true },
+            },
+          },
+        },
       },
     })
     .then((restaurant) => res.status(200).json(restaurant))
@@ -36,70 +39,50 @@ const getRestaurantById = (req: Request, res: Response, next: NextFunction) => {
 };
 
 const updateRestaurant = (req: Request, res: Response, next: NextFunction) => {
-  const { id: restaurantId } = req.params;
-  const {
-    name,
-    neighborhood,
-    address,
-    photograph,
-    latlng,
-    image,
-    cuisine_type,
-    operating_hours,
-    reviews,
-  } = req.body;
+  const restaurantId = String(req.params.id);
+  const { name, neighborhood, address, latlng, image, cuisine_type, operating_hours } = req.body;
 
-  Restaurant.findByIdAndUpdate(
-    restaurantId,
-    {
-      name,
-      neighborhood,
-      address,
-      photograph,
-      latlng,
-      image,
-      cuisine_type,
-      operating_hours,
-      reviews,
-    },
-    { runValidators: true },
-  )
+  prisma.restaurant
+    .update({
+      where: { id: restaurantId },
+      data: {
+        name,
+        neighborhood,
+        address,
+        latlng,
+        image,
+        cuisine_type,
+        operating_hours,
+      },
+    })
     .then(() => res.status(200).json({ message: 'Restaurant updated successfully' }))
     .catch((error) => next(error));
 };
 
 const createRestaurant = (req: Request, res: Response, next: NextFunction) => {
-  const {
-    name,
-    neighborhood,
-    address,
-    photograph,
-    latlng,
-    image,
-    cuisine_type,
-    operating_hours,
-    reviews,
-  } = req.body;
+  const { name, neighborhood, address, latlng, image, cuisine_type, operating_hours } = req.body;
 
-  Restaurant.create({
-    name,
-    neighborhood,
-    address,
-    photograph,
-    latlng,
-    image,
-    cuisine_type,
-    operating_hours,
-    reviews,
-  })
+  prisma.restaurant
+    .create({
+      data: {
+        name,
+        neighborhood,
+        address,
+        latlng,
+        image,
+        cuisine_type,
+        operating_hours,
+      },
+    })
     .then((restaurant) => res.status(201).json(restaurant))
     .catch((error) => next(error));
 };
 
 const deleteRestaurant = (req: Request, res: Response, next: NextFunction) => {
-  const { id } = req.params;
+  const id = String(req.params.id);
 
-  Restaurant.findByIdAndDelete(id)
+  prisma.restaurant
+    .delete({ where: { id } })
     .then((restaurant) => res.status(200).json(restaurant))
     .catch((error) => next(error));
 };
