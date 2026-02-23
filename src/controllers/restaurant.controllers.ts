@@ -1,15 +1,14 @@
-import { Request, Response, NextFunction } from "express";
-import mongoose from "mongoose";
-import Restaurant from "../models/Restaurant.model";
-import User from "../models/User.model";
+import { Request, Response, NextFunction } from 'express';
+import mongoose from 'mongoose';
+import Restaurant from '../models/Restaurant.model';
 
 const getAllRestaurants = (req: Request, res: Response, next: NextFunction) => {
   Restaurant.find()
     .populate({
-      path: "reviews",
+      path: 'reviews',
       populate: {
-        path: "restaurantId",
-        select: "name",
+        path: 'restaurantId',
+        select: 'name',
       },
     })
     .then((restaurants) => res.status(200).json(restaurants))
@@ -19,17 +18,17 @@ const getAllRestaurants = (req: Request, res: Response, next: NextFunction) => {
 const getRestaurantById = (req: Request, res: Response, next: NextFunction) => {
   const { id } = req.params;
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    res.status(400).json({ message: "Invalid restaurant ID" });
+  if (!mongoose.isValidObjectId(id)) {
+    res.status(400).json({ message: 'Invalid restaurant ID' });
     return;
   }
 
   Restaurant.findById(id)
     .populate({
-      path: "reviews",
+      path: 'reviews',
       populate: {
-        path: "restaurantId",
-        select: "name",
+        path: 'restaurantId',
+        select: 'name',
       },
     })
     .then((restaurant) => res.status(200).json(restaurant))
@@ -63,11 +62,9 @@ const updateRestaurant = (req: Request, res: Response, next: NextFunction) => {
       operating_hours,
       reviews,
     },
-    { runValidators: true }
+    { runValidators: true },
   )
-    .then(() =>
-      res.status(200).json({ message: "Restaurant updated successfully" })
-    )
+    .then(() => res.status(200).json({ message: 'Restaurant updated successfully' }))
     .catch((error) => next(error));
 };
 

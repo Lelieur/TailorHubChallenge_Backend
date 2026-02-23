@@ -9,10 +9,10 @@ const Restaurant_model_1 = __importDefault(require("../models/Restaurant.model")
 const getAllRestaurants = (req, res, next) => {
     Restaurant_model_1.default.find()
         .populate({
-        path: "reviews",
+        path: 'reviews',
         populate: {
-            path: "restaurantId",
-            select: "name",
+            path: 'restaurantId',
+            select: 'name',
         },
     })
         .then((restaurants) => res.status(200).json(restaurants))
@@ -21,16 +21,16 @@ const getAllRestaurants = (req, res, next) => {
 exports.getAllRestaurants = getAllRestaurants;
 const getRestaurantById = (req, res, next) => {
     const { id } = req.params;
-    if (!mongoose_1.default.Types.ObjectId.isValid(id)) {
-        res.status(400).json({ message: "Invalid restaurant ID" });
+    if (!mongoose_1.default.isValidObjectId(id)) {
+        res.status(400).json({ message: 'Invalid restaurant ID' });
         return;
     }
     Restaurant_model_1.default.findById(id)
         .populate({
-        path: "reviews",
+        path: 'reviews',
         populate: {
-            path: "restaurantId",
-            select: "name",
+            path: 'restaurantId',
+            select: 'name',
         },
     })
         .then((restaurant) => res.status(200).json(restaurant))
@@ -51,7 +51,7 @@ const updateRestaurant = (req, res, next) => {
         operating_hours,
         reviews,
     }, { runValidators: true })
-        .then(() => res.status(200).json({ message: "Restaurant updated successfully" }))
+        .then(() => res.status(200).json({ message: 'Restaurant updated successfully' }))
         .catch((error) => next(error));
 };
 exports.updateRestaurant = updateRestaurant;

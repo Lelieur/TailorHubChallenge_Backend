@@ -1,8 +1,8 @@
-import { Request, Response, NextFunction } from "express";
-import mongoose from "mongoose";
-import Review from "../models/Review.model";
-import User from "../models/User.model";
-import Restaurant from "../models/Restaurant.model";
+import { Request, Response, NextFunction } from 'express';
+import mongoose from 'mongoose';
+import Review from '../models/Review.model';
+import User from '../models/User.model';
+import Restaurant from '../models/Restaurant.model';
 const createReview = (req: Request, res: Response, next: NextFunction) => {
   const { name, date, rating, comments, authorId, restaurantId } = req.body;
 
@@ -25,12 +25,12 @@ const createReview = (req: Request, res: Response, next: NextFunction) => {
           {
             $push: { reviews: review._id },
           },
-          { new: true, runValidators: true }
+          { new: true, runValidators: true },
         ),
         Restaurant.findByIdAndUpdate(
           restaurantId,
           { $push: { reviews: review } },
-          { new: true, runValidators: true }
+          { new: true, runValidators: true },
         ),
       ]);
     })
@@ -41,18 +41,17 @@ const createReview = (req: Request, res: Response, next: NextFunction) => {
 };
 
 const deleteReview = (req: Request, res: Response, next: NextFunction) => {
-  console.log("deleteReview");
   const { id } = req.params;
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    res.status(400).json({ message: "Invalid review ID" });
+  if (!mongoose.isValidObjectId(id)) {
+    res.status(400).json({ message: 'Invalid review ID' });
     return;
   }
 
   Review.findByIdAndDelete(id)
     .then((review) => {
       if (!review) {
-        res.status(404).json({ message: "Review not found" });
+        res.status(404).json({ message: 'Review not found' });
         return null;
       }
       const { authorId, restaurantId } = review;
@@ -60,12 +59,12 @@ const deleteReview = (req: Request, res: Response, next: NextFunction) => {
         User.findByIdAndUpdate(
           authorId,
           { $pull: { reviews: review._id } },
-          { new: true, runValidators: true }
+          { new: true, runValidators: true },
         ),
         Restaurant.findByIdAndUpdate(
           restaurantId,
           { $pull: { reviews: { _id: review._id } } },
-          { new: true, runValidators: true }
+          { new: true, runValidators: true },
         ),
       ]);
     })
@@ -79,30 +78,34 @@ const updateReview = (req: Request, res: Response, next: NextFunction) => {
   const { id } = req.params;
   const { name, date, rating, comments, restaurantId } = req.body;
 
-  Review.findByIdAndUpdate(
-    id,
-    { name, date, rating, comments },
-    { new: true, runValidators: true }
-  )
+  Review.findByIdAndUpdate(id, { name, date, rating, comments }, { new: true, runValidators: true })
     .then((updatedReview) => {
       if (!updatedReview) {
-        res.status(404).json({ message: "Review not found" });
+        res.status(404).json({ message: 'Review not found' });
         return;
       }
       return Restaurant.findByIdAndUpdate(
         restaurantId,
-        { $set: { "reviews.$[elem]": updatedReview } },
+        { $set: { 'reviews.$[elem]': updatedReview } },
         {
-          arrayFilters: [{ "elem._id": updatedReview._id }],
+          arrayFilters: [{ 'elem._id': updatedReview._id }],
           new: true,
           runValidators: true,
-        }
+        },
       );
     })
     .then(() => {
-      res.status(200).json({ message: "Review updated successfully" });
+      res.status(200).json({ message: 'Review updated successfully' });
     })
     .catch((error) => next(error));
 };
 
-export { createReview, deleteReview, updateReview };
+const getReviewById = (req: Request, res: Response, next: NextFunction) => {
+  const { id } = req.params;
+
+  Review.findById(id)
+    .then((review) => res.status(200).json(review))
+    .catch((error) => next(error));
+};
+
+export { createReview, deleteReview, updateReview, getReviewById };

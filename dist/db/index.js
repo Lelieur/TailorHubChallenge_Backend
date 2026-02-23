@@ -4,9 +4,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importDefault(require("mongoose"));
-const MONGODB_URI = process.env.NODE_ENV === "production"
-    ? process.env.MONGODB_URI_PROD
-    : process.env.MONGODB_URI || "mongodb://localhost:27017/";
+const MONGODB_URI = process.env.MONGODB_URI ||
+    "mongodb+srv://lucaslelieurll:Lukyluk1.72117@tailorhubchallenge.d9tp1.mongodb.net/?retryWrites=true&w=majority";
 mongoose_1.default
     .connect(MONGODB_URI)
     .then((x) => {

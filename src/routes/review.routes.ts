@@ -4,13 +4,15 @@ import verifyToken from "../middlewares/verifyToken";
 import {
   createReview,
   deleteReview,
+  getReviewById,
   updateReview,
-} from "../controllers/review.controllers";
+} from '../controllers/review.controllers';
 
 const router = Router();
 
-router.post("/reviews", verifyToken, createReview);
-router.delete("/reviews/:id", verifyToken, deleteReview);
-router.put("/reviews/:id", verifyToken, updateReview);
+router.post('/reviews', verifyToken, createReview);
+router.delete('/reviews/:id', verifyToken, deleteReview);
+router.put('/reviews/:id', verifyToken, updateReview);
+router.get('/reviews/:id', getReviewById);
 
 export default router;
