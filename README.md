@@ -1,50 +1,99 @@
-# Análisis de la Aplicación
+# TailorHub Backend
 
-## Descripción
+API backend en `Node.js + Express + TypeScript` para la prueba tecnica de TailorHub.
 
-Esto es la API de la aplicación de prueba para Tailor Hub. Su objetivo es gestionar las peticiones de la aplicación web (ver el repositorio de la aplicación web [aquí](https://github.com/Lelieur/TailorChallenge_Frontend)).
+Estado actual:
+- Runtime principal en `PostgreSQL + Prisma`.
+- Autenticacion JWT con rutas privadas protegidas por middleware.
+- Migracion legacy de MongoDB/Mongoose conservada como evidencia tecnica en `tools/migration`.
 
-## Rutas de la API
+## Stack
 
-- **GET** `/api/restaurants`: Obtener la lista de restaurantes.
-- **GET** `/api/restaurants/:id`: Obtener los detalles de un restaurante específico.
-- **POST** `/api/restaurants`: Crear un nuevo restaurante.
-- **POST** `/api/restaurants/:id/favorite`: Añadir un restaurante a favoritos.
-- **DELETE** `/api/restaurants/:id/favorite`: Eliminar un restaurante de favoritos.
-- **POST** `/api/reviews`: Crear una reseña para un restaurante.
-- **PUT** `/api/reviews/:id`: Editar una reseña propia.
-- **DELETE** `/api/reviews/:id`: Eliminar una reseña propia.
-- **POST** `/api/login`: Iniciar sesión.
-- **POST** `/api/register`: Registrar un nuevo usuario.
-- **POST** `/api/verify-token`: Verificar el token de autenticación.
-- **GET** `/api/cloudinary/signuploadform`: Obtener la información de Cloudinary para el formulario de subida de imágenes.
+- TypeScript
+- Express 5
+- Prisma + PostgreSQL
+- JWT (`jsonwebtoken`)
+- Vitest + Supertest para pruebas
 
-## Tecnologías Utilizadas
+## Requisitos
 
-- **Lenguaje de Programación**: TypeScript
-- **Framework**: Express.js
-- **Base de Datos**: MongoDB
-- **Otras Tecnologías**: Mongoose
+- Node.js `>= 20.19`
+- Una base PostgreSQL accesible
 
-## Instalación
+## Configuracion
 
-Para instalar la API, sigue estos pasos:
+1. Crea/copialas variables de entorno desde `.env.example`.
+2. Para desarrollo local, usa `.env.local` (el backend lo prioriza cuando `NODE_ENV !== production`).
 
-1. Clona el repositorio de la API: `git clone https://github.com/Lelieur/TailorChallenge_Backend`
-2. Navega al directorio del proyecto: `cd TailorChallenge_Backend`
-3. Instala las dependencias: `npm install`
+Variables clave:
+- `PORT`
+- `ORIGIN`
+- `TOKEN_SECRET`
+- `DATABASE_URL`
 
-## Uso
+Opcionales (si usas firma de subida de imagenes):
+- `CLOUDINARY_API_KEY`
+- `CLOUDINARY_API_SECRET`
+- `CLOUDINARY_CLOUD_NAME`
+- `CLOUDINARY_FOLDER_NAME`
 
-Para ejecutar la API, utiliza el siguiente comando:
+Variables legacy (solo migracion Mongo -> Postgres):
+- `MONGODB_URI`
+- `DIRECT_DATABASE_URL` (o `DIRECT_DATABASE`)
 
-```bash
-npm run dev
-```
+## Scripts
 
-## Configuración
+- `npm run dev`: ejecuta backend en modo desarrollo.
+- `npm run build`: compila TypeScript.
+- `npm start`: ejecuta build compilada.
+- `npm test`: ejecuta tests.
+- `npm run typecheck`: chequeo de tipos.
+- `npm run ci`: lint + typecheck + test.
+- `npm run migrate:mongo:archive`: ejecuta script de migracion legacy.
 
-Para configurar la API, sigue estos pasos:
+## Rutas API
 
-1. Copia el archivo `.env.example` a `.env`: `cp .env.example .env`
-2. Edita el archivo `.env` con tus credenciales y configuraciones específicas.
+Base path: `/api`
+
+Publicas:
+- `POST /signup`
+- `POST /login`
+- `GET /signuploadform` (Cloudinary)
+
+Privadas (requieren `Authorization: Bearer <token>`):
+- Auth:
+  - `GET /verify`
+  - `POST /logout`
+- Restaurantes:
+  - `GET /restaurants`
+  - `GET /restaurants/:id`
+  - `POST /restaurants`
+  - `DELETE /restaurants/:id` (solo owner)
+- Reviews:
+  - `POST /reviews`
+  - `PUT /reviews/:id` (solo owner)
+  - `DELETE /reviews/:id` (solo owner)
+  - `GET /reviews/:id`
+- Usuario:
+  - `GET /users/:id` (solo propio usuario)
+  - `PUT /users/:id` (actualiza favoritos via `action: add/remove`)
+  - `PUT /users/addfavorite/:id`
+  - `PUT /users/removefavorite/:id`
+
+## Seguridad implementada
+
+- Validacion estricta de `Bearer token`.
+- Rechazo de token invalido/revocado/expirado (`401`).
+- Control de ownership en operaciones sensibles (`403`).
+- `authorId` y `createdById` se derivan del token, no del body cliente.
+- Manejo de errores HTTP tipados para evitar `500` en errores de negocio.
+
+## Migracion legacy MongoDB -> PostgreSQL
+
+La migracion historica se conserva en:
+
+- `tools/migration/mongo-to-postgres/README.md`
+- `tools/migration/mongo-to-postgres/migrate-mongo-to-postgres.ts`
+- `tools/migration/mongo-to-postgres/legacy-models/*`
+
+No forma parte del runtime principal, se mantiene como soporte/documentacion tecnica.

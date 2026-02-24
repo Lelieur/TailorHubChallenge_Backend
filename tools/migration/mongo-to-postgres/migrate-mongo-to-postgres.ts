@@ -1,10 +1,10 @@
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 
-import User from "../src/models/User.model";
-import Restaurant from "../src/models/Restaurant.model";
-import Review from "../src/models/Review.model";
-import { PrismaClient } from "../src/generated/prisma/client";
+import User from "./legacy-models/User.model";
+import Restaurant from "./legacy-models/Restaurant.model";
+import Review from "./legacy-models/Review.model";
+import { PrismaClient } from "../../../src/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 

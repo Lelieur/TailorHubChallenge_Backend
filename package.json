@@ -12,6 +12,7 @@
     "format:check": "prettier . --check",
     "test": "vitest run",
     "test:watch": "vitest",
+    "migrate:mongo:archive": "tsx tools/migration/mongo-to-postgres/migrate-mongo-to-postgres.ts",
     "ci": "npm run lint && npm run typecheck && npm run test"
   },
   "author": "Lucas Lelieur",
