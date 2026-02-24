@@ -1,7 +1,10 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { randomUUID } from 'crypto';
 import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../db';
+import { revokeTokenJti } from '../services/token-revocation';
+
 const saltRounds = 10;
 
 const signupUser = (req: Request, res: Response, next: NextFunction) => {
@@ -52,9 +55,15 @@ const signupUser = (req: Request, res: Response, next: NextFunction) => {
 
 const loginUser = (req: Request, res: Response, next: NextFunction) => {
   const { email, password } = req.body;
+  const tokenSecret = process.env.TOKEN_SECRET;
 
   if (!email || !password) {
     res.status(400).json({ message: 'All fields are required' });
+    return;
+  }
+
+  if (!tokenSecret) {
+    res.status(500).json({ message: 'TOKEN_SECRET not configured' });
     return;
   }
 
@@ -78,15 +87,21 @@ const loginUser = (req: Request, res: Response, next: NextFunction) => {
 
       const { id, username, email, favoriteRestaurantIds } = user;
 
-      const payload = { id, username, email, favoriteRestaurants: favoriteRestaurantIds };
+      const payload = {
+        id,
+        username,
+        email,
+        favoriteRestaurants: favoriteRestaurantIds,
+      };
 
-      const authToken = jwt.sign(payload, process.env.TOKEN_SECRET || 'Pedo_Mellon_a_Minno', {
+      const authToken = jwt.sign(payload, tokenSecret, {
         algorithm: 'HS256',
         expiresIn: '6h',
+        jwtid: randomUUID(),
       });
 
       res.status(200).json({
-        authToken: authToken,
+        authToken,
         userData: { id, username, email, favoriteRestaurants: favoriteRestaurantIds },
       });
     })
@@ -97,4 +112,16 @@ const verifyUser = (req: Request, res: Response) => {
   res.status(200).json({ loggedUserData: req.payload });
 };
 
-export { signupUser, loginUser, verifyUser };
+const logoutUser = (req: Request, res: Response) => {
+  const tokenId = req.payload?.jti;
+
+  if (!tokenId || typeof tokenId !== 'string') {
+    res.status(400).json({ message: 'Token cannot be revoked' });
+    return;
+  }
+
+  revokeTokenJti(tokenId);
+  res.status(204).send();
+};
+
+export { signupUser, loginUser, verifyUser, logoutUser };

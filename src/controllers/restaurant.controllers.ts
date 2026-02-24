@@ -1,6 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../db';
 
+const getTokenUserId = (req: Request): string | null => {
+  const userId = req.payload?.id;
+  return typeof userId === 'string' ? userId : null;
+};
+
 const getAllRestaurants = (req: Request, res: Response, next: NextFunction) => {
   prisma.restaurant
     .findMany({
@@ -34,7 +39,14 @@ const getRestaurantById = (req: Request, res: Response, next: NextFunction) => {
         },
       },
     })
-    .then((restaurant) => res.status(200).json(restaurant))
+    .then((restaurant) => {
+      if (!restaurant) {
+        res.status(404).json({ message: 'Restaurant not found' });
+        return;
+      }
+
+      res.status(200).json(restaurant);
+    })
     .catch((error) => next(error));
 };
 
@@ -60,6 +72,12 @@ const updateRestaurant = (req: Request, res: Response, next: NextFunction) => {
 };
 
 const createRestaurant = (req: Request, res: Response, next: NextFunction) => {
+  const tokenUserId = getTokenUserId(req);
+  if (!tokenUserId) {
+    res.status(401).json({ message: 'Unauthorized user' });
+    return;
+  }
+
   const { name, neighborhood, address, latlng, image, cuisine_type, operating_hours } = req.body;
 
   prisma.restaurant
@@ -72,6 +90,7 @@ const createRestaurant = (req: Request, res: Response, next: NextFunction) => {
         image,
         cuisine_type,
         operating_hours,
+        createdById: tokenUserId,
       },
     })
     .then((restaurant) => res.status(201).json(restaurant))

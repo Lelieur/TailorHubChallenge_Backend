@@ -1,13 +1,24 @@
-import { Request, Response, NextFunction } from "express";
-import { prisma } from "../db";
+import { Request, Response, NextFunction } from 'express';
+import { prisma } from '../db';
+
+const getTokenUserId = (req: Request): string | null => {
+  const userId = req.payload?.id;
+  return typeof userId === 'string' ? userId : null;
+};
 
 const createReview = (req: Request, res: Response, next: NextFunction) => {
-  const { name, date, rating, comments, authorId, restaurantId } = req.body;
+  const tokenUserId = getTokenUserId(req);
+  if (!tokenUserId) {
+    res.status(401).json({ message: 'Unauthorized user' });
+    return;
+  }
+
+  const { name, date, rating, comments, restaurantId } = req.body;
 
   prisma
     .$transaction(async (tx) => {
       const user = await tx.user.findUnique({
-        where: { id: authorId },
+        where: { id: tokenUserId },
         select: { reviewIds: true },
       });
       if (!user) {
@@ -20,7 +31,7 @@ const createReview = (req: Request, res: Response, next: NextFunction) => {
           date,
           rating,
           comments,
-          authorId,
+          authorId: tokenUserId,
           restaurantId,
         },
       });
@@ -30,7 +41,7 @@ const createReview = (req: Request, res: Response, next: NextFunction) => {
         : [...user.reviewIds, review.id];
 
       await tx.user.update({
-        where: { id: authorId },
+        where: { id: tokenUserId },
         data: { reviewIds: { set: reviewIds } },
       });
 
@@ -41,6 +52,12 @@ const createReview = (req: Request, res: Response, next: NextFunction) => {
 };
 
 const deleteReview = (req: Request, res: Response, next: NextFunction) => {
+  const tokenUserId = getTokenUserId(req);
+  if (!tokenUserId) {
+    res.status(401).json({ message: 'Unauthorized user' });
+    return;
+  }
+
   const id = String(req.params.id);
 
   prisma
@@ -50,7 +67,13 @@ const deleteReview = (req: Request, res: Response, next: NextFunction) => {
         select: { id: true, authorId: true },
       });
       if (!review) {
-        throw new Error('Review not found');
+        res.status(404).json({ message: 'Review not found' });
+        return;
+      }
+
+      if (review.authorId !== tokenUserId) {
+        res.status(403).json({ message: 'Forbidden: You can only delete your own review' });
+        return;
       }
 
       const user = await tx.user.findUnique({
@@ -69,22 +92,46 @@ const deleteReview = (req: Request, res: Response, next: NextFunction) => {
         where: { id: review.authorId },
         data: { reviewIds: { set: reviewIds } },
       });
+
+      res.status(204).send();
     })
-    .then(() => res.status(204).send())
     .catch((error) => next(error));
 };
 
 const updateReview = (req: Request, res: Response, next: NextFunction) => {
+  const tokenUserId = getTokenUserId(req);
+  if (!tokenUserId) {
+    res.status(401).json({ message: 'Unauthorized user' });
+    return;
+  }
+
   const id = String(req.params.id);
   const { name, date, rating, comments, restaurantId } = req.body;
 
   prisma.review
-    .update({
-      where: { id },
-      data: { name, date, rating, comments, restaurantId },
+    .findUnique({ where: { id }, select: { authorId: true } })
+    .then((review) => {
+      if (!review) {
+        res.status(404).json({ message: 'Review not found' });
+        return null;
+      }
+
+      if (review.authorId !== tokenUserId) {
+        res.status(403).json({ message: 'Forbidden: You can only edit your own review' });
+        return null;
+      }
+
+      return prisma.review.update({
+        where: { id },
+        data: { name, date, rating, comments, restaurantId },
+      });
     })
-    .then(() => {
-      res.status(200).json({ message: "Review updated successfully" });
+    .then((updatedReview) => {
+      if (!updatedReview) {
+        return;
+      }
+
+      res.status(200).json({ message: 'Review updated successfully' });
     })
     .catch((error) => next(error));
 };
@@ -94,7 +141,14 @@ const getReviewById = (req: Request, res: Response, next: NextFunction) => {
 
   prisma.review
     .findUnique({ where: { id } })
-    .then((review) => res.status(200).json(review))
+    .then((review) => {
+      if (!review) {
+        res.status(404).json({ message: 'Review not found' });
+        return;
+      }
+
+      res.status(200).json(review);
+    })
     .catch((error) => next(error));
 };
 

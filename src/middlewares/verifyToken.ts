@@ -1,34 +1,55 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import { isTokenJtiRevoked } from '../services/token-revocation';
 
 const verifyToken = (req: Request, res: Response, next: NextFunction): void => {
+  const authorizationHeader = req.headers.authorization;
+
+  if (!authorizationHeader) {
+    res.status(401).json({ message: 'Authorization header is required' });
+    return;
+  }
+
+  if (!authorizationHeader.startsWith('Bearer ')) {
+    res.status(401).json({ message: 'Authorization header must use Bearer token' });
+    return;
+  }
+
+  const bearerToken = authorizationHeader.slice('Bearer '.length).trim();
+
+  if (!bearerToken) {
+    res.status(401).json({ message: 'Bearer token is required' });
+    return;
+  }
+
+  if (!process.env.TOKEN_SECRET) {
+    res.status(500).json({ message: 'TOKEN_SECRET not configured' });
+    return;
+  }
+
   try {
-    const token = req.headers.authorization;
+    const decodedToken = jwt.verify(bearerToken, process.env.TOKEN_SECRET);
 
-    if (!token) {
-      res.status(401).json({ message: 'No token provided' });
+    if (typeof decodedToken === 'string') {
+      res.status(401).json({ message: 'Invalid token payload' });
       return;
     }
 
-    const tokenParts = token.split(' ');
-    const bearerToken = tokenParts[1];
-
-    if (!bearerToken) {
-      res.status(401).json({ message: 'Invalid token format' });
+    if (!decodedToken.id || typeof decodedToken.id !== 'string') {
+      res.status(401).json({ message: 'Token missing user id' });
       return;
     }
 
-    if (!process.env.TOKEN_SECRET) {
-      throw new Error('TOKEN_SECRET not found');
+    if (decodedToken.jti && typeof decodedToken.jti === 'string' && isTokenJtiRevoked(decodedToken.jti)) {
+      res.status(401).json({ message: 'Token has been revoked' });
+      return;
     }
 
-    const validTokenPayload = jwt.verify(bearerToken, process.env.TOKEN_SECRET);
-
-    req.payload = validTokenPayload as jwt.JwtPayload;
-
+    req.payload = decodedToken;
+    req.authToken = bearerToken;
     next();
-  } catch (error) {
-    res.status(401).json({ message: 'Unauthorized user', error: error });
+  } catch {
+    res.status(401).json({ message: 'Unauthorized user' });
   }
 };
 

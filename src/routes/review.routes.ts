@@ -1,5 +1,5 @@
-import { Router } from "express";
-import verifyToken from "../middlewares/verifyToken";
+import { Router } from 'express';
+import verifyToken from '../middlewares/verifyToken';
 
 import {
   createReview,
@@ -13,6 +13,6 @@ const router = Router();
 router.post('/reviews', verifyToken, createReview);
 router.delete('/reviews/:id', verifyToken, deleteReview);
 router.put('/reviews/:id', verifyToken, updateReview);
-router.get('/reviews/:id', getReviewById);
+router.get('/reviews/:id', verifyToken, getReviewById);
 
 export default router;
