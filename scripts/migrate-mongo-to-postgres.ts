@@ -64,6 +64,18 @@ async function main(): Promise<void> {
 
     const userIdMap = new Map<string, string>();
     const restaurantIdMap = new Map<string, string>();
+    const reviewIdsByUserId = new Map<string, string[]>();
+
+    const addReviewIdForUser = (userId: string, reviewId: string): void => {
+      const existing = reviewIdsByUserId.get(userId);
+      if (!existing) {
+        reviewIdsByUserId.set(userId, [reviewId]);
+        return;
+      }
+      if (!existing.includes(reviewId)) {
+        existing.push(reviewId);
+      }
+    };
 
     const systemUser = await prisma.user.create({
       data: {
@@ -134,7 +146,7 @@ async function main(): Promise<void> {
         continue;
       }
 
-      await prisma.review.create({
+      const created = await prisma.review.create({
         data: {
           name: review.name,
           date: review.date,
@@ -146,6 +158,8 @@ async function main(): Promise<void> {
           updatedAt: review.updatedAt ?? new Date(),
         },
       });
+
+      addReviewIdForUser(authorId, created.id);
     }
 
     const existingReviews = await prisma.review.findMany({
@@ -200,7 +214,7 @@ async function main(): Promise<void> {
 
         if (existingReviewKeys.has(key)) continue;
 
-        await prisma.review.create({
+        const created = await prisma.review.create({
           data: {
             name,
             date,
@@ -211,8 +225,16 @@ async function main(): Promise<void> {
           },
         });
 
+        addReviewIdForUser(embeddedAuthorId, created.id);
         existingReviewKeys.add(key);
       }
+    }
+
+    for (const [userId, reviewIds] of reviewIdsByUserId.entries()) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { reviewIds: { set: reviewIds } },
+      });
     }
 
     for (const user of users) {
@@ -235,9 +257,7 @@ async function main(): Promise<void> {
       await prisma.user.update({
         where: { id: userId },
         data: {
-          favoriteRestaurants: {
-            connect: favoriteIds.map((id) => ({ id })),
-          },
+          favoriteRestaurantIds: { set: favoriteIds },
         },
       });
     }

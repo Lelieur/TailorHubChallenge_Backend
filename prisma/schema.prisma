@@ -14,15 +14,15 @@ datasource db {
 }
 
 model User {
-  id                  String        @id @default(uuid())
-  username            String
-  email               String        @unique
-  password            String
-  favoriteRestaurants Restaurant[]  @relation("FavoriteRestaurants")
-  reviews             Review[]
-  restaurantsCreated  Restaurant[]
-  createdAt           DateTime      @default(now())
-  updatedAt           DateTime      @updatedAt
+  id                    String        @id @default(uuid())
+  username              String
+  email                 String        @unique
+  password              String
+  favoriteRestaurantIds String[]      @default([])
+  reviewIds             String[]      @default([])
+  restaurantsCreated    Restaurant[]
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
 }
 
 model Restaurant {
@@ -37,7 +37,6 @@ model Restaurant {
   reviews         Review[]
   createdById     String?
   createdBy       User?        @relation(fields: [createdById], references: [id])
-  favoritedBy     User[]       @relation("FavoriteRestaurants")
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 }
@@ -49,7 +48,6 @@ model Review {
   rating       Int
   comments     String
   authorId     String
-  author       User       @relation(fields: [authorId], references: [id])
   restaurantId String
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
   createdAt    DateTime   @default(now())

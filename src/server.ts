@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 if (process.env.NODE_ENV !== 'production') {
   dotenv.config({ path: '.env.local' });
 } else {
-  dotenv.config(); // Cargar .env en producción
+  dotenv.config();
 }
 
 const PORT: number = parseInt(process.env.PORT || '3000', 10);

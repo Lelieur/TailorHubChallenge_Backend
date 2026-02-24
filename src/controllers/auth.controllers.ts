@@ -61,7 +61,6 @@ const loginUser = (req: Request, res: Response, next: NextFunction) => {
   prisma.user
     .findUnique({
       where: { email },
-      include: { favoriteRestaurants: { select: { id: true } } },
     })
     .then((user) => {
       if (!user) {
@@ -77,8 +76,7 @@ const loginUser = (req: Request, res: Response, next: NextFunction) => {
         return;
       }
 
-      const { id, username, email, favoriteRestaurants } = user;
-      const favoriteRestaurantIds = favoriteRestaurants.map((r) => r.id);
+      const { id, username, email, favoriteRestaurantIds } = user;
 
       const payload = { id, username, email, favoriteRestaurants: favoriteRestaurantIds };
 
