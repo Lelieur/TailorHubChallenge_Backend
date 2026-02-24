@@ -190,8 +190,9 @@ describe('restaurant controllers', () => {
   });
 
   it('deleteRestaurant returns 200 on success', async () => {
+    restaurantFindUniqueMock.mockResolvedValue({ createdById: 'token-user' });
     restaurantDeleteMock.mockResolvedValue({ id: 'rest-1' });
-    const req = { params: { id: 'rest-1' } } as unknown as Request;
+    const req = { payload: { id: 'token-user' }, params: { id: 'rest-1' } } as unknown as Request;
     const res = createMockResponse();
     const next = vi.fn() as unknown as NextFunction;
 
@@ -202,9 +203,52 @@ describe('restaurant controllers', () => {
     expect(res.json).toHaveBeenCalledWith({ id: 'rest-1' });
   });
 
-  it('deleteRestaurant calls next on error', async () => {
-    restaurantDeleteMock.mockRejectedValue(new Error('db error'));
+  it('deleteRestaurant returns 401 without token payload', () => {
     const req = { params: { id: 'rest-1' } } as unknown as Request;
+    const res = createMockResponse();
+    const next = vi.fn() as unknown as NextFunction;
+
+    deleteRestaurant(req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(401);
+    expect(res.json).toHaveBeenCalledWith({ message: 'Unauthorized user' });
+    expect(restaurantDeleteMock).not.toHaveBeenCalled();
+  });
+
+  it('deleteRestaurant returns 403 when user is not owner', async () => {
+    restaurantFindUniqueMock.mockResolvedValue({ createdById: 'other-user' });
+    const req = { payload: { id: 'token-user' }, params: { id: 'rest-1' } } as unknown as Request;
+    const res = createMockResponse();
+    const next = vi.fn() as unknown as NextFunction;
+
+    deleteRestaurant(req, res, next);
+    await flushPromises();
+
+    expect(res.status).toHaveBeenCalledWith(403);
+    expect(res.json).toHaveBeenCalledWith({
+      message: 'Forbidden: You can only delete your own restaurant',
+    });
+    expect(restaurantDeleteMock).not.toHaveBeenCalled();
+  });
+
+  it('deleteRestaurant returns 404 when restaurant does not exist', async () => {
+    restaurantFindUniqueMock.mockResolvedValue(null);
+    const req = { payload: { id: 'token-user' }, params: { id: 'missing-rest' } } as unknown as Request;
+    const res = createMockResponse();
+    const next = vi.fn() as unknown as NextFunction;
+
+    deleteRestaurant(req, res, next);
+    await flushPromises();
+
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.json).toHaveBeenCalledWith({ message: 'Restaurant not found' });
+    expect(restaurantDeleteMock).not.toHaveBeenCalled();
+  });
+
+  it('deleteRestaurant calls next on error', async () => {
+    restaurantFindUniqueMock.mockResolvedValue({ createdById: 'token-user' });
+    restaurantDeleteMock.mockRejectedValue(new Error('db error'));
+    const req = { payload: { id: 'token-user' }, params: { id: 'rest-1' } } as unknown as Request;
     const res = createMockResponse();
     const next = vi.fn() as unknown as NextFunction;
 

@@ -34,7 +34,7 @@ const signupUser = (req: Request, res: Response, next: NextFunction) => {
     .findUnique({ where: { email } })
     .then((user) => {
       if (user) {
-        next(new Error('User already registered'));
+        res.status(409).json({ message: 'User already registered' });
         return;
       }
 
@@ -47,7 +47,15 @@ const signupUser = (req: Request, res: Response, next: NextFunction) => {
     })
     .then((newUser) => {
       if (!newUser) return;
-      const { ...safeUser } = newUser;
+      const safeUser = {
+        id: newUser.id,
+        username: newUser.username,
+        email: newUser.email,
+        favoriteRestaurantIds: newUser.favoriteRestaurantIds,
+        reviewIds: newUser.reviewIds,
+        createdAt: newUser.createdAt,
+        updatedAt: newUser.updatedAt,
+      };
       res.status(201).json({ message: 'User created successfully', user: safeUser });
     })
     .catch((error) => next(error));

@@ -16,8 +16,12 @@ vi.mock('../src/db', () => ({
   },
 }));
 
-import { addFavoriteRestaurant, getUserById } from '../src/controllers/user.controllers';
-import { removeFavoriteRestaurant } from '../src/controllers/user.controllers';
+import {
+  addFavoriteRestaurant,
+  getUserById,
+  removeFavoriteRestaurant,
+  updateUserById,
+} from '../src/controllers/user.controllers';
 
 describe('user controllers', () => {
   beforeEach(() => {
@@ -93,6 +97,122 @@ describe('user controllers', () => {
         reviews: ['rev1'],
       }),
     );
+  });
+
+  it('getUserById calls next on db error', async () => {
+    userFindUniqueMock.mockRejectedValue(new Error('db error'));
+    const req = {
+      payload: { id: 'token-user' },
+      params: { id: 'token-user' },
+    } as unknown as Request;
+    const res = createMockResponse();
+    const next = vi.fn() as unknown as NextFunction;
+
+    getUserById(req, res, next);
+    await flushPromises();
+
+    expect(next).toHaveBeenCalled();
+  });
+
+  it('updateUserById returns 401 without token', () => {
+    const req = {
+      params: { id: 'token-user' },
+      body: { restaurantId: 'rest-1', action: 'add' },
+    } as unknown as Request;
+    const res = createMockResponse();
+    const next = vi.fn() as unknown as NextFunction;
+
+    updateUserById(req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(401);
+    expect(res.json).toHaveBeenCalledWith({ message: 'Unauthorized user' });
+  });
+
+  it('updateUserById returns 403 for different user', () => {
+    const req = {
+      payload: { id: 'token-user' },
+      params: { id: 'other-user' },
+      body: { restaurantId: 'rest-1', action: 'add' },
+    } as unknown as Request;
+    const res = createMockResponse();
+    const next = vi.fn() as unknown as NextFunction;
+
+    updateUserById(req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(403);
+    expect(res.json).toHaveBeenCalledWith({
+      message: 'Forbidden: You can only edit your own user data',
+    });
+  });
+
+  it('updateUserById returns 400 for invalid body', () => {
+    const req = {
+      payload: { id: 'token-user' },
+      params: { id: 'token-user' },
+      body: { restaurantId: 'rest-1', action: 'invalid' },
+    } as unknown as Request;
+    const res = createMockResponse();
+    const next = vi.fn() as unknown as NextFunction;
+
+    updateUserById(req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ message: 'restaurantId and action (add/remove) are required' });
+  });
+
+  it('updateUserById returns 200 and updates favorites', async () => {
+    const tx = {
+      user: {
+        findUnique: vi.fn().mockResolvedValue({ favoriteRestaurantIds: [] }),
+        update: vi.fn().mockResolvedValue({
+          id: 'token-user',
+          favoriteRestaurantIds: ['rest-1'],
+        }),
+      },
+    };
+    transactionMock.mockImplementation(
+      async (cb: (client: typeof tx) => Promise<unknown> | unknown) => cb(tx),
+    );
+    const req = {
+      payload: { id: 'token-user' },
+      params: { id: 'token-user' },
+      body: { restaurantId: 'rest-1', action: 'add' },
+    } as unknown as Request;
+    const res = createMockResponse();
+    const next = vi.fn() as unknown as NextFunction;
+
+    updateUserById(req, res, next);
+    await flushPromises();
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({
+      id: 'token-user',
+      favoriteRestaurants: ['rest-1'],
+    });
+  });
+
+  it('updateUserById calls next when user is not found', async () => {
+    const tx = {
+      user: {
+        findUnique: vi.fn().mockResolvedValue(null),
+        update: vi.fn(),
+      },
+    };
+    transactionMock.mockImplementation(
+      async (cb: (client: typeof tx) => Promise<unknown> | unknown) => cb(tx),
+    );
+    const req = {
+      payload: { id: 'token-user' },
+      params: { id: 'token-user' },
+      body: { restaurantId: 'rest-1', action: 'add' },
+    } as unknown as Request;
+    const res = createMockResponse();
+    const next = vi.fn() as unknown as NextFunction;
+
+    updateUserById(req, res, next);
+    await flushPromises();
+
+    expect(next).toHaveBeenCalled();
   });
 
   it('addFavoriteRestaurant uses token user id and not body id', async () => {

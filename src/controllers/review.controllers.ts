@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../db';
+import HttpError from '../errors/http-error';
 
 const getTokenUserId = (req: Request): string | null => {
   const userId = req.payload?.id;
@@ -22,7 +23,7 @@ const createReview = (req: Request, res: Response, next: NextFunction) => {
         select: { reviewIds: true },
       });
       if (!user) {
-        throw new Error('User not found');
+        throw new HttpError(404, 'User not found');
       }
 
       const review = await tx.review.create({
@@ -81,7 +82,7 @@ const deleteReview = (req: Request, res: Response, next: NextFunction) => {
         select: { reviewIds: true },
       });
       if (!user) {
-        throw new Error('User not found');
+        throw new HttpError(404, 'User not found');
       }
 
       await tx.review.delete({ where: { id } });

@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">80% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>24/30</span>
+                <span class='fraction'>30/30</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">84.21% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>16/19</span>
+                <span class='fraction'>19/19</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">80% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>24/30</span>
+                <span class='fraction'>30/30</span>
             </div>
         
             
@@ -124,36 +124,36 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">38x</span>
+<span class="cline-any cline-yes">41x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">38x</span>
+<span class="cline-any cline-yes">41x</span>
 <span class="cline-any cline-yes">11x</span>
 <span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">30x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">28x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">28x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">27x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">25x</span>
+<span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-yes">26x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">25x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">25x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">25x</span>
-<span class="cline-any cline-yes">25x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">25x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">13x</span>
@@ -194,22 +194,22 @@ const verifyToken = (req: Request, res: Response, next: NextFunction): void =&gt
 &nbsp;
   const bearerToken = authorizationHeader.slice('Bearer '.length).trim();
 &nbsp;
-  <span class="missing-if-branch" title="if path not taken" >I</span>if (!bearerToken) {
-<span class="cstat-no" title="statement not covered" >    res.status(401).json({ message: 'Bearer token is required' });</span>
-<span class="cstat-no" title="statement not covered" >    return;</span>
+  if (!bearerToken) {
+    res.status(401).json({ message: 'Bearer token is required' });
+    return;
   }
 &nbsp;
-  <span class="missing-if-branch" title="if path not taken" >I</span>if (!process.env.TOKEN_SECRET) {
-<span class="cstat-no" title="statement not covered" >    res.status(500).json({ message: 'TOKEN_SECRET not configured' });</span>
-<span class="cstat-no" title="statement not covered" >    return;</span>
+  if (!process.env.TOKEN_SECRET) {
+    res.status(500).json({ message: 'TOKEN_SECRET not configured' });
+    return;
   }
 &nbsp;
   try {
     const decodedToken = jwt.verify(bearerToken, process.env.TOKEN_SECRET);
 &nbsp;
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (typeof decodedToken === 'string') {
-<span class="cstat-no" title="statement not covered" >      res.status(401).json({ message: 'Invalid token payload' });</span>
-<span class="cstat-no" title="statement not covered" >      return;</span>
+    if (typeof decodedToken === 'string') {
+      res.status(401).json({ message: 'Invalid token payload' });
+      return;
     }
 &nbsp;
     if (!decodedToken.id || typeof decodedToken.id !== 'string') {
@@ -238,7 +238,7 @@ export default verifyToken;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-02-24T17:52:33.436Z
+                at 2026-02-24T18:03:46.001Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

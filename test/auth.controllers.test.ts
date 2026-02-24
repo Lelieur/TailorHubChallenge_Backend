@@ -92,7 +92,7 @@ describe('auth controllers', () => {
     expect(res.json).toHaveBeenCalledWith({ message: 'Please use a valid email address' });
   });
 
-  it('signupUser calls next when user already exists', async () => {
+  it('signupUser returns 409 when user already exists', async () => {
     findUniqueMock.mockResolvedValue({ id: 'existing' });
 
     const req = {
@@ -104,7 +104,9 @@ describe('auth controllers', () => {
     signupUser(req, res, next);
     await flushPromises();
 
-    expect(next).toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(409);
+    expect(res.json).toHaveBeenCalledWith({ message: 'User already registered' });
+    expect(next).not.toHaveBeenCalled();
   });
 
   it('signupUser creates user and returns 201', async () => {

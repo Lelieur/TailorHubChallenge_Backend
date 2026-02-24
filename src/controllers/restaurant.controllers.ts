@@ -98,11 +98,36 @@ const createRestaurant = (req: Request, res: Response, next: NextFunction) => {
 };
 
 const deleteRestaurant = (req: Request, res: Response, next: NextFunction) => {
+  const tokenUserId = getTokenUserId(req);
+  if (!tokenUserId) {
+    res.status(401).json({ message: 'Unauthorized user' });
+    return;
+  }
+
   const id = String(req.params.id);
 
   prisma.restaurant
-    .delete({ where: { id } })
-    .then((restaurant) => res.status(200).json(restaurant))
+    .findUnique({ where: { id }, select: { createdById: true } })
+    .then((restaurant) => {
+      if (!restaurant) {
+        res.status(404).json({ message: 'Restaurant not found' });
+        return null;
+      }
+
+      if (!restaurant.createdById || restaurant.createdById !== tokenUserId) {
+        res.status(403).json({ message: 'Forbidden: You can only delete your own restaurant' });
+        return null;
+      }
+
+      return prisma.restaurant.delete({ where: { id } });
+    })
+    .then((deletedRestaurant) => {
+      if (!deletedRestaurant) {
+        return;
+      }
+
+      res.status(200).json(deletedRestaurant);
+    })
     .catch((error) => next(error));
 };
 
