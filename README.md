@@ -45,6 +45,18 @@ Variables legacy (solo migracion Mongo -> Postgres):
 - `MONGODB_URI`
 - `DIRECT_DATABASE_URL` (o `DIRECT_DATABASE`)
 
+## Levantar en local
+
+1. Clona el repositorio y entra al directorio:
+   - `git clone <repo-url>`
+   - `cd TailorHubChallenge_Backend`
+2. Instala dependencias:
+   - `npm install`
+3. Configura entorno:
+   - copia `.env.example` a `.env.local`
+4. Ejecuta el servidor:
+   - `npm run dev`
+
 ## Scripts
 
 - `npm run dev`: ejecuta backend en modo desarrollo.
