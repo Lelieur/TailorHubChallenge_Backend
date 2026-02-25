@@ -1,11 +1,7 @@
 import app from './app';
 import dotenv from 'dotenv';
 
-if (process.env.NODE_ENV !== 'production') {
-  dotenv.config({ path: '.env.local' });
-} else {
-  dotenv.config();
-}
+dotenv.config({ path: '.env' });
 
 const PORT: number = parseInt(process.env.PORT || '3000', 10);
 const HOST = process.env.FLY_APP_NAME ? '0.0.0.0' : '127.0.0.1';

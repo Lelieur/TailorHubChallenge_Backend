@@ -8,7 +8,6 @@ import { PrismaClient } from "../../../src/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 
-dotenv.config({ path: ".env.local" });
 dotenv.config({ path: ".env" });
 
 const toId = (value: unknown): string | null => {

@@ -1,10 +1,6 @@
 import dotenv from "dotenv";
 
-if (process.env.NODE_ENV !== "production") {
-  dotenv.config({ path: ".env.local" });
-} else {
-  dotenv.config({ path: ".env" });
-}
+dotenv.config({ path: ".env" });
 
 import "./db";
 
