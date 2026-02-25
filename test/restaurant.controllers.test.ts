@@ -110,6 +110,31 @@ describe('restaurant controllers', () => {
     expect(res.status).toHaveBeenCalledWith(201);
   });
 
+  it('createRestaurant returns 400 and lists missing/invalid fields', () => {
+    const req = {
+      payload: { id: 'token-user' },
+      body: {
+        name: '',
+        neighborhood: 'N',
+        address: '',
+        latlng: { lat: 10 },
+        image: '',
+        cuisine_type: 'Italian',
+      },
+    } as unknown as Request;
+    const res = createMockResponse();
+    const next = vi.fn() as unknown as NextFunction;
+
+    createRestaurant(req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      message:
+        'Faltan algunos campos obligatorios o son incorrectos: Nombre del restaurante, Dirección, Imagen, latlng.lng, operating_hours',
+    });
+    expect(restaurantCreateMock).not.toHaveBeenCalled();
+  });
+
   it('getRestaurantById returns 404 if not found', async () => {
     restaurantFindUniqueMock.mockResolvedValue(null);
 
@@ -153,7 +178,15 @@ describe('restaurant controllers', () => {
     restaurantCreateMock.mockRejectedValue(new Error('db error'));
     const req = {
       payload: { id: 'token-user' },
-      body: { name: 'R1' },
+      body: {
+        name: 'R1',
+        neighborhood: 'N',
+        address: 'A',
+        latlng: { lat: 0, lng: 0 },
+        image: 'img',
+        cuisine_type: 'Italian',
+        operating_hours: {},
+      },
     } as unknown as Request;
     const res = createMockResponse();
     const next = vi.fn() as unknown as NextFunction;

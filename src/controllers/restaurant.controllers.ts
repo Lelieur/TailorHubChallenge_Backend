@@ -79,6 +79,35 @@ const createRestaurant = (req: Request, res: Response, next: NextFunction) => {
   }
 
   const { name, neighborhood, address, latlng, image, cuisine_type, operating_hours } = req.body;
+  const missingOrInvalidFields: string[] = [];
+
+  if (typeof name !== 'string' || !name.trim())
+    missingOrInvalidFields.push('Nombre del restaurante');
+  if (typeof neighborhood !== 'string' || !neighborhood.trim())
+    missingOrInvalidFields.push('Barrio');
+  if (typeof address !== 'string' || !address.trim()) missingOrInvalidFields.push('Dirección');
+  if (typeof image !== 'string' || !image.trim()) missingOrInvalidFields.push('Imagen');
+  if (typeof cuisine_type !== 'string' || !cuisine_type.trim())
+    missingOrInvalidFields.push('Tipo de cocina');
+
+  if (!latlng || typeof latlng !== 'object' || Array.isArray(latlng)) {
+    missingOrInvalidFields.push('latlng');
+  } else {
+    const latlngObject = latlng as { lat?: unknown; lng?: unknown };
+    if (typeof latlngObject.lat !== 'number') missingOrInvalidFields.push('latlng.lat');
+    if (typeof latlngObject.lng !== 'number') missingOrInvalidFields.push('latlng.lng');
+  }
+
+  if (!operating_hours || typeof operating_hours !== 'object' || Array.isArray(operating_hours)) {
+    missingOrInvalidFields.push('operating_hours');
+  }
+
+  if (missingOrInvalidFields.length > 0) {
+    res.status(400).json({
+      message: `Faltan algunos campos obligatorios o son incorrectos: ${missingOrInvalidFields.join(', ')}`,
+    });
+    return;
+  }
 
   prisma.restaurant
     .create({

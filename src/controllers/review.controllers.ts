@@ -15,6 +15,21 @@ const createReview = (req: Request, res: Response, next: NextFunction) => {
   }
 
   const { name, date, rating, comments, restaurantId } = req.body;
+  const missingOrInvalidFields: string[] = [];
+
+  if (typeof name !== 'string' || !name.trim()) missingOrInvalidFields.push('Nombre');
+  if (typeof date !== 'string' || !date.trim()) missingOrInvalidFields.push('Fecha');
+  if (typeof rating !== 'number') missingOrInvalidFields.push('Puntuación');
+  if (typeof comments !== 'string' || !comments.trim()) missingOrInvalidFields.push('Comentarios');
+  if (typeof restaurantId !== 'string' || !restaurantId.trim())
+    missingOrInvalidFields.push('Restaurante');
+
+  if (missingOrInvalidFields.length > 0) {
+    res.status(400).json({
+      message: `Faltan algunos campos obligatorios o son incorrectos: ${missingOrInvalidFields.join(', ')}`,
+    });
+    return;
+  }
 
   prisma
     .$transaction(async (tx) => {

@@ -3,6 +3,7 @@
 API backend en `Node.js + Express + TypeScript` para la prueba tecnica de TailorHub.
 
 Estado actual:
+
 - Runtime principal en `PostgreSQL + Prisma`.
 - Autenticacion JWT con rutas privadas protegidas por middleware.
 - Migracion legacy de MongoDB/Mongoose conservada como evidencia tecnica en `tools/migration`.
@@ -22,22 +23,25 @@ Estado actual:
 
 ## Configuracion
 
-1. Crea/copialas variables de entorno desde `.env.example`.
+1. Crea/copia las variables de entorno desde `.env.example`.
 2. Para desarrollo local, usa `.env.local` (el backend lo prioriza cuando `NODE_ENV !== production`).
 
 Variables clave:
+
 - `PORT`
 - `ORIGIN`
 - `TOKEN_SECRET`
 - `DATABASE_URL`
 
 Opcionales (si usas firma de subida de imagenes):
+
 - `CLOUDINARY_API_KEY`
 - `CLOUDINARY_API_SECRET`
 - `CLOUDINARY_CLOUD_NAME`
 - `CLOUDINARY_FOLDER_NAME`
 
 Variables legacy (solo migracion Mongo -> Postgres):
+
 - `MONGODB_URI`
 - `DIRECT_DATABASE_URL` (o `DIRECT_DATABASE`)
 
@@ -56,11 +60,13 @@ Variables legacy (solo migracion Mongo -> Postgres):
 Base path: `/api`
 
 Publicas:
+
 - `POST /signup`
 - `POST /login`
 - `GET /signuploadform` (Cloudinary)
 
 Privadas (requieren `Authorization: Bearer <token>`):
+
 - Auth:
   - `GET /verify`
   - `POST /logout`

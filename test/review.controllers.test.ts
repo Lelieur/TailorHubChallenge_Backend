@@ -41,6 +41,27 @@ describe('review controllers', () => {
     expect(res.json).toHaveBeenCalledWith({ message: 'Unauthorized user' });
   });
 
+  it('createReview returns 400 and lists missing/invalid fields', () => {
+    const req = {
+      payload: { id: 'token-user' },
+      body: {
+        name: '',
+        rating: '5',
+        comments: '',
+      },
+    } as unknown as Request;
+    const res = createMockResponse();
+    const next = vi.fn() as unknown as NextFunction;
+
+    createReview(req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      message:
+        'Faltan algunos campos obligatorios o son incorrectos: Nombre, Fecha, Puntuación, Comentarios, Restaurante',
+    });
+  });
+
   it('createReview ignores authorId in body and uses token user id', async () => {
     const tx = {
       user: {
@@ -86,7 +107,13 @@ describe('review controllers', () => {
     transactionMock.mockRejectedValue(new Error('db error'));
     const req = {
       payload: { id: 'token-user' },
-      body: { restaurantId: 'rest-1' },
+      body: {
+        name: 'User',
+        date: '2026-02-24',
+        rating: 5,
+        comments: 'Great',
+        restaurantId: 'rest-1',
+      },
     } as unknown as Request;
     const res = createMockResponse();
     const next = vi.fn() as unknown as NextFunction;
@@ -112,7 +139,13 @@ describe('review controllers', () => {
     );
     const req = {
       payload: { id: 'token-user' },
-      body: { restaurantId: 'rest-1' },
+      body: {
+        name: 'User',
+        date: '2026-02-24',
+        rating: 5,
+        comments: 'Great',
+        restaurantId: 'rest-1',
+      },
     } as unknown as Request;
     const res = createMockResponse();
     const next = vi.fn() as unknown as NextFunction;
